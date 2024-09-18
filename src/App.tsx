@@ -4,11 +4,13 @@ import MainPage from "./pages/mainPage/mainPage";
 import LoginPage from "./pages/loginPage/loginPage";
 import { ThemeProvider } from "@emotion/react";
 import { createTheme } from "@mui/material/styles";
+import RegisterPage from "./pages/registerPage/registerPage";
 
 function App() {
   const router = createBrowserRouter([
     { path: "/", element: <MainPage /> },
     { path: "/login", element: <LoginPage /> },
+    { path: "/register", element: <RegisterPage /> },
   ]);
 
   const theme = createTheme({

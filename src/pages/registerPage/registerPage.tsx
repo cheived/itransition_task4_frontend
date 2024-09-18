@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
 
-const LoginPage = () => {
+const RegisterPage = () => {
   const textFieldSx: SxProps = { width: "100%" };
   return (
     <>
@@ -42,8 +42,8 @@ const LoginPage = () => {
               <Typography variant="h6">
                 Enter your email and password
               </Typography>
-              <Link to="/register" component={RouterLink}>
-                Already have account?
+              <Link to="/login" component={RouterLink}>
+                Want to log in?
               </Link>
             </Box>
 
@@ -57,6 +57,7 @@ const LoginPage = () => {
                 width: "100%",
               }}
             >
+              <TextField label="Name" sx={textFieldSx} />
               <TextField label="Email" sx={textFieldSx} />
               <TextField label="Password" sx={textFieldSx} />
             </Box>
@@ -71,4 +72,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default RegisterPage;
