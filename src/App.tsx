@@ -5,10 +5,20 @@ import LoginPage from "./pages/loginPage/loginPage";
 import { ThemeProvider } from "@emotion/react";
 import { createTheme } from "@mui/material/styles";
 import RegisterPage from "./pages/registerPage/registerPage";
+import PrivateRoute from "./Routes/PrivateRoute";
 
 function App() {
   const router = createBrowserRouter([
-    { path: "/", element: <MainPage /> },
+    {
+      path: "/",
+      element: <PrivateRoute />,
+      children: [
+        {
+          path: "",
+          element: <MainPage />,
+        },
+      ],
+    },
     { path: "/login", element: <LoginPage /> },
     { path: "/register", element: <RegisterPage /> },
   ]);
