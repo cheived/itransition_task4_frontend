@@ -1,24 +1,36 @@
-import { Container } from "@mui/material";
+import { Button, Container, Stack } from "@mui/material";
 import { DataGrid, GridColDef, useGridApiRef } from "@mui/x-data-grid";
 import { FC } from "react";
 import useSWR from "swr";
+import DeleteIcon from "@mui/icons-material/Delete";
+import LockIcon from "@mui/icons-material/Lock";
+import LockOpenIcon from "@mui/icons-material/LockOpen";
+import { useNavigate } from "react-router-dom";
 
 const MainPage = () => {
-  const fetcher = (...args) => fetch(...args).then((res) => res.json());
+  const navigate = useNavigate();
+
+  const fetcher = async (...args) => {
+    const response = await fetch(...args);
+
+    if (!response.ok) {
+      navigate("/login");
+      throw new Error(await response.text());
+    }
+
+    return response.json();
+  };
   const { data, error, isLoading } = useSWR(
     [
       "http://localhost:3000/users",
       {
         headers: {
-          Authorization:
-            "Bearer " +
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImVtYWlsIjoic3RyaW5nQGdnLmdnZyIsImlhdCI6MTcyNjY3NDY0OSwiZXhwIjoxNzI5MjY2NjQ5fQ.Cv4trjgC4mV6GfKpVyhBi0Ck7daBSFGw5wYt4UGU6ys",
+          Authorization: "Bearer " + JSON.parse(localStorage.getItem("token")),
         },
       },
     ],
     ([url, token]) => fetcher(url, token)
   );
-  console.log(data);
 
   const ref = useGridApiRef();
 
@@ -29,22 +41,74 @@ const MainPage = () => {
     { field: "active", headerName: "Account status" },
   ];
 
-  // setTimeout(() => {
-  //   console.log(ref.current.getSelectedRows());
-  // }, 3000);
+  async function deleteMany() {
+    const rows = Object.fromEntries(ref.current.getSelectedRows().entries());
+    console.log(Object.keys(rows).map((item) => +item));
+
+    await fetch("http://localhost:3000/users", {
+      method: "DELETE",
+      headers: {
+        "Content-type": "application/json",
+        Authorization: "Bearer " + JSON.parse(localStorage.getItem("token")),
+      },
+      body: JSON.stringify(Object.keys(rows).map((item) => +item)),
+    });
+  }
+
+  async function changeStatus(status: boolean) {
+    const rows = Object.fromEntries(ref.current.getSelectedRows().entries());
+    console.log(Object.keys(rows).map((item) => +item));
+
+    await fetch("http://localhost:3000/users", {
+      method: "PATCH",
+      headers: {
+        "Content-type": "application/json",
+        Authorization: "Bearer " + JSON.parse(localStorage.getItem("token")),
+      },
+      body: JSON.stringify({
+        ids: Object.keys(rows).map((item) => +item),
+        status,
+      }),
+    });
+  }
+
   return (
     <>
       <Container>
-        <DataGrid
-          apiRef={ref}
-          columns={columns}
-          rows={data?.map((item) => ({
-            ...item,
-            status: item.status ? "Active" : "Disabled",
-          }))}
-          checkboxSelection
-          onCellClick={() => console.log(ref.current.getSelectedRows())}
-        />
+        <Stack direction="row" spacing={1} margin={1}>
+          <Button
+            variant="contained"
+            startIcon={<LockIcon />}
+            onClick={() => changeStatus(false)}
+          >
+            Block
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<LockOpenIcon />}
+            onClick={() => changeStatus(true)}
+          >
+            Unblock
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<DeleteIcon />}
+            onClick={() => deleteMany()}
+          >
+            Delete
+          </Button>
+        </Stack>
+        {data && (
+          <DataGrid
+            apiRef={ref}
+            columns={columns}
+            rows={data.map((item) => ({
+              ...item,
+              active: item.active ? "Active" : "Disabled",
+            }))}
+            checkboxSelection
+          />
+        )}
       </Container>
     </>
   );
