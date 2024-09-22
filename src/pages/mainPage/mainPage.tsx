@@ -22,6 +22,9 @@ const MainPage = () => {
 
   const fetcher = async (url: string, args?: RequestInit) => {
     const response = await fetchWithAuth(url, args);
+    if (response.status == 401) {
+      navigate("/login");
+    }
     return response.json();
   };
 
