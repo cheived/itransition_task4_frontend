@@ -28,6 +28,10 @@ interface IInputField {
   title: string;
 }
 
+interface FormData {
+  [key: string]: string; // Каждый ключ будет строкой, и значение тоже строка
+}
+
 const AuthForm: FC<IAuthForm> = ({
   title,
   link,
@@ -46,7 +50,7 @@ const AuthForm: FC<IAuthForm> = ({
 
   const navigate = useNavigate();
 
-  async function sendData(data) {
+  async function sendData(data: FormData) {
     console.log(data);
     try {
       setLoading(true);
@@ -68,9 +72,11 @@ const AuthForm: FC<IAuthForm> = ({
         JSON.stringify((await response.json()).access_token)
       );
       navigate("/");
-    } catch (error) {
-      console.log(error);
-      setError(error.message);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.log(error);
+        setError(error.message);
+      }
       setLoading(false);
     }
   }

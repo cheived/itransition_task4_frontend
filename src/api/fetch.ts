@@ -1,4 +1,4 @@
-export async function fetchWithAuth(url: string, options: RequestInit) {
+export async function fetchWithAuth(url: string, options?: RequestInit) {
   const loginUrl = "/login";
   let tokenData = null;
   if (localStorage.token) {
@@ -7,12 +7,14 @@ export async function fetchWithAuth(url: string, options: RequestInit) {
     window.location.replace(loginUrl);
   }
 
-  if (!options.headers) {
+  if (!options?.headers && options) {
     options.headers = {};
   }
 
-  if (tokenData) {
-    options.headers.Authorization = `Bearer ${tokenData}`;
+  if (tokenData && options) {
+    const headers = new Headers();
+    headers.set("Authorization", `Bearer ${tokenData}`);
+    options.headers = headers;
   }
 
   return fetch(import.meta.env.VITE_API_URL + url, options);

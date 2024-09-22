@@ -9,9 +9,18 @@ import { useNavigate } from "react-router-dom";
 import { fetchWithAuth } from "../../api/fetch";
 
 const MainPage = () => {
+  interface IUser {
+    id: number;
+    name: string;
+    email: string;
+    password: string;
+    active: boolean;
+    lastLogin: Date;
+  }
+
   const navigate = useNavigate();
 
-  const fetcher = async (url: string, args: RequestInit) => {
+  const fetcher = async (url: string, args?: RequestInit) => {
     const response = await fetchWithAuth(url, args);
 
     if (!response.ok) {
@@ -21,9 +30,8 @@ const MainPage = () => {
 
     return response.json();
   };
-  const { data, mutate } = useSWR(["/users", {}], ([url, args]) =>
-    fetcher(url, args)
-  );
+
+  const { data, mutate } = useSWR<IUser[]>(["/users"], ([url]) => fetcher(url));
 
   const profile = useSWR(["/users/profile", {}], ([url, args]) =>
     fetcher(url, args)
