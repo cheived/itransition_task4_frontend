@@ -29,7 +29,7 @@ interface IInputField {
 }
 
 interface FormData {
-  [key: string]: string; // Каждый ключ будет строкой, и значение тоже строка
+  [key: string]: string;
 }
 
 const AuthForm: FC<IAuthForm> = ({

@@ -22,16 +22,10 @@ const MainPage = () => {
 
   const fetcher = async (url: string, args?: RequestInit) => {
     const response = await fetchWithAuth(url, args);
-
-    if (!response.ok) {
-      navigate("/login");
-      throw new Error(await response.text());
-    }
-
     return response.json();
   };
 
-  const { data, mutate } = useSWR<IUser[]>(["/users"], ([url]) => fetcher(url));
+  const users = useSWR<IUser[]>(["/users"], ([url]) => fetcher(url));
 
   const profile = useSWR(["/users/profile"], ([url]) => fetcher(url));
 
@@ -55,7 +49,7 @@ const MainPage = () => {
       },
       ...options,
     });
-    mutate();
+    users.mutate();
     ref.current.setRowSelectionModel([]);
   }
 
@@ -117,12 +111,12 @@ const MainPage = () => {
             Delete
           </Button>
         </Stack>
-        {data && (
+        {users.data && (
           <DataGrid
             apiRef={ref}
             autosizeOnMount
             columns={columns}
-            rows={data.map((item) => ({
+            rows={users.data.map((item) => ({
               ...item,
               active: item.active ? "Active" : "Disabled",
             }))}
