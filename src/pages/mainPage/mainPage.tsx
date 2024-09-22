@@ -33,9 +33,7 @@ const MainPage = () => {
 
   const { data, mutate } = useSWR<IUser[]>(["/users"], ([url]) => fetcher(url));
 
-  const profile = useSWR(["/users/profile", {}], ([url, args]) =>
-    fetcher(url, args)
-  );
+  const profile = useSWR(["/users/profile"], ([url]) => fetcher(url));
 
   const ref = useGridApiRef();
 

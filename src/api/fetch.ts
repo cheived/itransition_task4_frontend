@@ -7,11 +7,15 @@ export async function fetchWithAuth(url: string, options?: RequestInit) {
     window.location.replace(loginUrl);
   }
 
-  if (!options?.headers && options) {
+  if (!options) {
+    options = {};
+  }
+
+  if (!options.headers) {
     options.headers = {};
   }
 
-  if (tokenData && options) {
+  if (tokenData) {
     const headers = new Headers();
     headers.set("Authorization", `Bearer ${tokenData}`);
     options.headers = headers;
