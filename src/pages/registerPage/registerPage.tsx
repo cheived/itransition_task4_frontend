@@ -13,7 +13,7 @@ const RegisterPage = () => {
           { title: "Password" },
         ]}
         buttonText="Register"
-        sendTo="/users"
+        sendTo="/auth/register"
       />
     </>
   );

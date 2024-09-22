@@ -47,10 +47,11 @@ const AuthForm: FC<IAuthForm> = ({
   const navigate = useNavigate();
 
   async function sendData(data) {
+    console.log(data);
     try {
       setLoading(true);
       console.log(data);
-      const response = await fetch("http://localhost:3000" + sendTo, {
+      const response = await fetch(import.meta.env.VITE_API_URL + sendTo, {
         method: "POST",
         body: JSON.stringify(data),
         headers: {
@@ -116,7 +117,7 @@ const AuthForm: FC<IAuthForm> = ({
                 width: "100%",
               }}
             >
-              {inputFields.map((item) => {
+              {inputFields.map((item, i) => {
                 return (
                   <Controller
                     name={item.title.toLowerCase()}
@@ -124,6 +125,7 @@ const AuthForm: FC<IAuthForm> = ({
                     render={({ field }) => (
                       <TextField
                         {...field}
+                        key={i}
                         label={item.title}
                         sx={textFieldSx}
                       />

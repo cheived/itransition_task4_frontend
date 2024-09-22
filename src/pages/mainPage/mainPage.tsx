@@ -1,17 +1,18 @@
-import { Button, Container, Stack } from "@mui/material";
+import { Button, Container, Stack, Typography } from "@mui/material";
 import { DataGrid, GridColDef, useGridApiRef } from "@mui/x-data-grid";
-import { FC } from "react";
 import useSWR from "swr";
 import DeleteIcon from "@mui/icons-material/Delete";
 import LockIcon from "@mui/icons-material/Lock";
 import LockOpenIcon from "@mui/icons-material/LockOpen";
+import LogoutIcon from "@mui/icons-material/Logout";
 import { useNavigate } from "react-router-dom";
+import { fetchWithAuth } from "../../api/fetch";
 
 const MainPage = () => {
   const navigate = useNavigate();
 
-  const fetcher = async (...args) => {
-    const response = await fetch(...args);
+  const fetcher = async (url: string, args: RequestInit) => {
+    const response = await fetchWithAuth(url, args);
 
     if (!response.ok) {
       navigate("/login");
@@ -20,16 +21,12 @@ const MainPage = () => {
 
     return response.json();
   };
-  const { data, error, isLoading } = useSWR(
-    [
-      "http://localhost:3000/users",
-      {
-        headers: {
-          Authorization: "Bearer " + JSON.parse(localStorage.getItem("token")),
-        },
-      },
-    ],
-    ([url, token]) => fetcher(url, token)
+  const { data, mutate } = useSWR(["/users", {}], ([url, args]) =>
+    fetcher(url, args)
+  );
+
+  const profile = useSWR(["/users/profile", {}], ([url, args]) =>
+    fetcher(url, args)
   );
 
   const ref = useGridApiRef();
@@ -39,61 +36,78 @@ const MainPage = () => {
     { field: "name", headerName: "Name" },
     { field: "email", headerName: "Email" },
     { field: "active", headerName: "Account status" },
+    { field: "lastLogin", headerName: "Last login" },
   ];
 
-  async function deleteMany() {
+  async function sendRowData(url: string, options: object) {
     const rows = Object.fromEntries(ref.current.getSelectedRows().entries());
     console.log(Object.keys(rows).map((item) => +item));
 
-    await fetch("http://localhost:3000/users", {
-      method: "DELETE",
+    await fetchWithAuth(url, {
+      body: JSON.stringify(Object.keys(rows).map((item) => +item)),
       headers: {
         "Content-type": "application/json",
-        Authorization: "Bearer " + JSON.parse(localStorage.getItem("token")),
       },
-      body: JSON.stringify(Object.keys(rows).map((item) => +item)),
+      ...options,
     });
+    mutate();
+    ref.current.setRowSelectionModel([]);
   }
 
-  async function changeStatus(status: boolean) {
-    const rows = Object.fromEntries(ref.current.getSelectedRows().entries());
-    console.log(Object.keys(rows).map((item) => +item));
-
-    await fetch("http://localhost:3000/users", {
-      method: "PATCH",
-      headers: {
-        "Content-type": "application/json",
-        Authorization: "Bearer " + JSON.parse(localStorage.getItem("token")),
-      },
-      body: JSON.stringify({
-        ids: Object.keys(rows).map((item) => +item),
-        status,
-      }),
-    });
+  function logOut() {
+    localStorage.removeItem("token");
+    navigate("/login");
   }
 
   return (
     <>
+      <Stack direction="row-reverse" gap={3} sx={{ margin: 1 }}>
+        <Button
+          variant="contained"
+          startIcon={<LogoutIcon />}
+          onClick={() => logOut()}
+        >
+          Log out
+        </Button>
+        <Typography
+          variant="body1"
+          sx={{ display: "flex", alignItems: "center" }}
+        >
+          You are logged in as {profile.data?.email}
+        </Typography>
+      </Stack>
       <Container>
         <Stack direction="row" spacing={1} margin={1}>
           <Button
             variant="contained"
             startIcon={<LockIcon />}
-            onClick={() => changeStatus(false)}
+            onClick={() =>
+              sendRowData("/users/deactivate", {
+                method: "PATCH",
+              })
+            }
           >
             Block
           </Button>
           <Button
             variant="contained"
             startIcon={<LockOpenIcon />}
-            onClick={() => changeStatus(true)}
+            onClick={() =>
+              sendRowData("/users/activate", {
+                method: "PATCH",
+              })
+            }
           >
             Unblock
           </Button>
           <Button
             variant="contained"
             startIcon={<DeleteIcon />}
-            onClick={() => deleteMany()}
+            onClick={() =>
+              sendRowData("/users", {
+                method: "DELETE",
+              })
+            }
           >
             Delete
           </Button>
@@ -101,6 +115,7 @@ const MainPage = () => {
         {data && (
           <DataGrid
             apiRef={ref}
+            autosizeOnMount
             columns={columns}
             rows={data.map((item) => ({
               ...item,
