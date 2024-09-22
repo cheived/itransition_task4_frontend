@@ -16,9 +16,10 @@ export async function fetchWithAuth(url: string, options?: RequestInit) {
   }
 
   if (tokenData) {
-    const headers = new Headers();
-    headers.set("Authorization", `Bearer ${tokenData}`);
-    options.headers = headers;
+    options.headers = {
+      ...options.headers,
+      Authorization: `Bearer ${tokenData}`,
+    };
   }
 
   return fetch(import.meta.env.VITE_API_URL + url, options);

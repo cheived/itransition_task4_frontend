@@ -47,7 +47,6 @@ const MainPage = () => {
 
   async function sendRowData(url: string, options: object) {
     const rows = Object.fromEntries(ref.current.getSelectedRows().entries());
-    console.log(Object.keys(rows).map((item) => +item));
 
     await fetchWithAuth(url, {
       body: JSON.stringify(Object.keys(rows).map((item) => +item)),
